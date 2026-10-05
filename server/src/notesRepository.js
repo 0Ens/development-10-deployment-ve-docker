@@ -1,59 +1,72 @@
 const { getDb } = require('./db');
 
-function createNote(userId, title, content = '', categoryId = null) {
-  const db = getDb();
-  const result = db.prepare(
-    'INSERT INTO notes (user_id, title, content, category_id) VALUES (?, ?, ?, ?)'
-  ).run(userId, title, content, categoryId);
-  return getNote(userId, result.lastInsertRowid);
+const SELECT_NOTE = `
+  SELECT n.id, n.title, n.content, n.category_id, n.created_at,
+         c.name AS category_name
+  FROM notes n
+  LEFT JOIN categories c ON c.id = n.category_id
+`;
+
+async function createNote(userId, title, content = '', categoryId = null) {
+  const db = await getDb();
+  const result = await db.execute({
+    sql: 'INSERT INTO notes (user_id, title, content, category_id) VALUES (?, ?, ?, ?)',
+    args: [userId, title, content, categoryId],
+  });
+  return getNote(userId, Number(result.lastInsertRowid));
 }
 
-function listNotes(userId) {
-  const db = getDb();
-  return db.prepare(`
-    SELECT n.id, n.title, n.content, n.category_id, n.created_at,
-           c.name AS category_name
-    FROM notes n
-    LEFT JOIN categories c ON c.id = n.category_id
-    WHERE n.user_id = ?
-    ORDER BY n.id
-  `).all(userId);
+async function listNotes(userId) {
+  const db = await getDb();
+  const result = await db.execute({
+    sql: `${SELECT_NOTE} WHERE n.user_id = ? ORDER BY n.id`,
+    args: [userId],
+  });
+  return result.rows;
 }
 
-function getNote(userId, id) {
-  const db = getDb();
-  return db.prepare(`
-    SELECT n.id, n.title, n.content, n.category_id, n.created_at,
-           c.name AS category_name
-    FROM notes n
-    LEFT JOIN categories c ON c.id = n.category_id
-    WHERE n.id = ? AND n.user_id = ?
-  `).get(id, userId) ?? null;
+async function getNote(userId, id) {
+  const db = await getDb();
+  const result = await db.execute({
+    sql: `${SELECT_NOTE} WHERE n.id = ? AND n.user_id = ?`,
+    args: [id, userId],
+  });
+  return result.rows[0] ?? null;
 }
 
-function updateNote(userId, id, title, content, categoryId) {
-  const db = getDb();
-  const result = db.prepare(
-    'UPDATE notes SET title = ?, content = ?, category_id = ? WHERE id = ? AND user_id = ?'
-  ).run(title, content, categoryId ?? null, id, userId);
-  if (result.changes === 0) return null;
+async function updateNote(userId, id, title, content, categoryId) {
+  const db = await getDb();
+  const result = await db.execute({
+    sql: 'UPDATE notes SET title = ?, content = ?, category_id = ? WHERE id = ? AND user_id = ?',
+    args: [title, content, categoryId ?? null, id, userId],
+  });
+  if (result.rowsAffected === 0) return null;
   return getNote(userId, id);
 }
 
-function deleteNote(userId, id) {
-  const db = getDb();
-  const result = db.prepare('DELETE FROM notes WHERE id = ? AND user_id = ?').run(id, userId);
-  return result.changes > 0;
+async function deleteNote(userId, id) {
+  const db = await getDb();
+  const result = await db.execute({
+    sql: 'DELETE FROM notes WHERE id = ? AND user_id = ?',
+    args: [id, userId],
+  });
+  return result.rowsAffected > 0;
 }
 
-function createCategory(name) {
-  const db = getDb();
-  const result = db.prepare('INSERT INTO categories (name) VALUES (?)').run(name);
-  return db.prepare('SELECT * FROM categories WHERE id = ?').get(result.lastInsertRowid);
+async function createCategory(name) {
+  const db = await getDb();
+  const result = await db.execute({ sql: 'INSERT INTO categories (name) VALUES (?)', args: [name] });
+  const created = await db.execute({
+    sql: 'SELECT * FROM categories WHERE id = ?',
+    args: [Number(result.lastInsertRowid)],
+  });
+  return created.rows[0];
 }
 
-function listCategories() {
-  return getDb().prepare('SELECT * FROM categories ORDER BY id').all();
+async function listCategories() {
+  const db = await getDb();
+  const result = await db.execute('SELECT * FROM categories ORDER BY id');
+  return result.rows;
 }
 
 module.exports = {

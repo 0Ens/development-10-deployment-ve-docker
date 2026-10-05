@@ -1,15 +1,22 @@
 const { getDb } = require('./db');
 
-function createUser(email, passwordHash) {
-  const db = getDb();
-  const result = db.prepare(
-    'INSERT INTO users (email, password_hash) VALUES (?, ?)'
-  ).run(email, passwordHash);
-  return db.prepare('SELECT id, email, created_at FROM users WHERE id = ?').get(result.lastInsertRowid);
+async function createUser(email, passwordHash) {
+  const db = await getDb();
+  const result = await db.execute({
+    sql: 'INSERT INTO users (email, password_hash) VALUES (?, ?)',
+    args: [email, passwordHash],
+  });
+  const created = await db.execute({
+    sql: 'SELECT id, email, created_at FROM users WHERE id = ?',
+    args: [Number(result.lastInsertRowid)],
+  });
+  return created.rows[0];
 }
 
-function findUserByEmail(email) {
-  return getDb().prepare('SELECT * FROM users WHERE email = ?').get(email) ?? null;
+async function findUserByEmail(email) {
+  const db = await getDb();
+  const result = await db.execute({ sql: 'SELECT * FROM users WHERE email = ?', args: [email] });
+  return result.rows[0] ?? null;
 }
 
 module.exports = { createUser, findUserByEmail };

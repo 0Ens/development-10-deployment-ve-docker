@@ -16,18 +16,23 @@ function toApiShape(row) {
   };
 }
 
-function listMessages() {
-  return getDb()
-    .prepare(`${SELECT_MESSAGE} ORDER BY m.id DESC`)
-    .all()
-    .map(toApiShape);
+async function listMessages() {
+  const db = await getDb();
+  const result = await db.execute(`${SELECT_MESSAGE} ORDER BY m.id DESC`);
+  return result.rows.map(toApiShape);
 }
 
-function createMessage(userId, text) {
-  const db = getDb();
-  const result = db.prepare('INSERT INTO messages (user_id, text) VALUES (?, ?)').run(userId, text);
-  const row = db.prepare(`${SELECT_MESSAGE} WHERE m.id = ?`).get(result.lastInsertRowid);
-  return toApiShape(row);
+async function createMessage(userId, text) {
+  const db = await getDb();
+  const result = await db.execute({
+    sql: 'INSERT INTO messages (user_id, text) VALUES (?, ?)',
+    args: [userId, text],
+  });
+  const created = await db.execute({
+    sql: `${SELECT_MESSAGE} WHERE m.id = ?`,
+    args: [Number(result.lastInsertRowid)],
+  });
+  return toApiShape(created.rows[0]);
 }
 
 module.exports = { listMessages, createMessage };

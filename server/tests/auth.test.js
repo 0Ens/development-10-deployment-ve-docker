@@ -1,5 +1,5 @@
 process.env.JWT_SECRET = 'test-secret-key-minimum-32-chars-long';
-process.env.DATABASE_PATH = ':memory:';
+process.env.DATABASE_URL = ':memory:';
 
 const request = require('supertest');
 const app = require('../src/app');

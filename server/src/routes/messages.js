@@ -15,16 +15,16 @@ function validateMessage(body) {
   return fields;
 }
 
-router.get('/', (req, res) => {
-  res.json(repo.listMessages());
+router.get('/', async (req, res) => {
+  res.json(await repo.listMessages());
 });
 
-router.post('/', authenticateToken, (req, res) => {
+router.post('/', authenticateToken, async (req, res) => {
   const errors = validateMessage(req.body ?? {});
   if (Object.keys(errors).length > 0) {
     return res.status(400).json({ error: true, message: 'Dogrulama hatasi', fields: errors });
   }
-  const message = repo.createMessage(req.user.id, req.body.text.trim());
+  const message = await repo.createMessage(req.user.id, req.body.text.trim());
   res.status(201).json(message);
 });
 

@@ -13,24 +13,24 @@ function validateNote(body) {
 
 router.use(authenticateToken);
 
-router.get('/', (req, res) => {
-  res.json(repo.listNotes(req.user.id));
+router.get('/', async (req, res) => {
+  res.json(await repo.listNotes(req.user.id));
 });
 
-router.get('/:id', (req, res) => {
-  const note = repo.getNote(req.user.id, parseInt(req.params.id));
+router.get('/:id', async (req, res) => {
+  const note = await repo.getNote(req.user.id, parseInt(req.params.id));
   if (!note) {
     return res.status(404).json({ error: true, message: 'Not bulunamadi', fields: {} });
   }
   res.json(note);
 });
 
-router.post('/', (req, res) => {
+router.post('/', async (req, res) => {
   const errors = validateNote(req.body);
   if (Object.keys(errors).length > 0) {
     return res.status(400).json({ error: true, message: 'Dogrulama hatasi', fields: errors });
   }
-  const note = repo.createNote(
+  const note = await repo.createNote(
     req.user.id,
     req.body.title.trim(),
     req.body.content || '',
@@ -39,12 +39,12 @@ router.post('/', (req, res) => {
   res.status(201).json(note);
 });
 
-router.put('/:id', (req, res) => {
+router.put('/:id', async (req, res) => {
   const errors = validateNote(req.body);
   if (Object.keys(errors).length > 0) {
     return res.status(400).json({ error: true, message: 'Dogrulama hatasi', fields: errors });
   }
-  const note = repo.updateNote(
+  const note = await repo.updateNote(
     req.user.id,
     parseInt(req.params.id),
     req.body.title.trim(),
@@ -57,8 +57,8 @@ router.put('/:id', (req, res) => {
   res.json(note);
 });
 
-router.delete('/:id', (req, res) => {
-  const deleted = repo.deleteNote(req.user.id, parseInt(req.params.id));
+router.delete('/:id', async (req, res) => {
+  const deleted = await repo.deleteNote(req.user.id, parseInt(req.params.id));
   if (!deleted) {
     return res.status(404).json({ error: true, message: 'Not bulunamadi', fields: {} });
   }

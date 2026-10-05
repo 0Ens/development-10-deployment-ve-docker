@@ -29,7 +29,7 @@ router.post('/register', async (req, res, next) => {
     const passwordHash = await bcrypt.hash(password, BCRYPT_ROUNDS);
 
     try {
-      const user = createUser(email.toLowerCase().trim(), passwordHash);
+      const user = await createUser(email.toLowerCase().trim(), passwordHash);
       res.status(201).json({ id: user.id, email: user.email, created_at: user.created_at });
     } catch (err) {
       if (err.message.includes('UNIQUE')) {
@@ -51,7 +51,7 @@ router.post('/login', async (req, res, next) => {
       return res.status(400).json({ error: true, message: 'Dogrulama hatasi', fields: {} });
     }
 
-    const user = findUserByEmail(email.toLowerCase().trim());
+    const user = await findUserByEmail(email.toLowerCase().trim());
     const passwordMatch = user ? await bcrypt.compare(password, user.password_hash) : false;
 
     // Her iki basarisizlik durumunda ayni jenerik mesaj
