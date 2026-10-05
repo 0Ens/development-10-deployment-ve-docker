@@ -1,7 +1,11 @@
 import type { Message } from './types'
 
+// Canlida API baska bir adreste (Render) calisir; adres build sirasinda VITE_API_URL ile verilir.
+// Lokalde bos kalir ve istekler Vite proxy uzerinden gider.
+const API_URL = import.meta.env.VITE_API_URL ?? ''
+
 export async function fetchMessages(): Promise<Message[]> {
-  const res = await fetch('/api/messages')
+  const res = await fetch(`${API_URL}/api/messages`)
   if (!res.ok) {
     throw new Error(`Mesajlar alınamadı (HTTP ${res.status})`)
   }
@@ -9,7 +13,7 @@ export async function fetchMessages(): Promise<Message[]> {
 }
 
 export async function createMessage(token: string, text: string): Promise<Message> {
-  const res = await fetch('/api/messages', {
+  const res = await fetch(`${API_URL}/api/messages`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -25,7 +29,7 @@ export async function createMessage(token: string, text: string): Promise<Messag
 }
 
 export async function login(email: string, password: string): Promise<string> {
-  const res = await fetch('/auth/login', {
+  const res = await fetch(`${API_URL}/auth/login`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ email, password }),
