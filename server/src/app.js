@@ -9,7 +9,12 @@ const cors = require('cors');
 
 const app = express();
 
-app.use(cors({ origin: 'http://localhost:5173' }));
+// Izinli origin'ler CORS_ORIGIN'den okunur (virgulle birden fazla verilebilir).
+const allowedOrigins = (process.env.CORS_ORIGIN || 'http://localhost:5173')
+  .split(',')
+  .map((origin) => origin.trim());
+
+app.use(cors({ origin: allowedOrigins }));
 
 app.use(logger);
 app.use(express.json());
