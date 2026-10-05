@@ -5,8 +5,11 @@ const notesRouter = require('./routes/notes');
 const categoriesRouter = require('./routes/categories');
 const authRouter = require('./routes/auth');
 const messagesRouter = require('./routes/messages');
+const cors = require('cors');
 
 const app = express();
+
+app.use(cors({ origin: 'http://localhost:5173' }));
 
 app.use(logger);
 app.use(express.json());
