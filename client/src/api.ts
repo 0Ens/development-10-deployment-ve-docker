@@ -28,6 +28,20 @@ export async function createMessage(token: string, text: string): Promise<Messag
   return res.json()
 }
 
+export async function register(email: string, password: string): Promise<void> {
+  const res = await fetch(`${API_URL}/auth/register`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email, password }),
+  })
+  if (!res.ok) {
+    const body = await res.json().catch(() => null)
+    throw new Error(
+      body?.fields?.email ?? body?.fields?.password ?? body?.message ?? 'Kayıt yapılamadı',
+    )
+  }
+}
+
 export async function login(email: string, password: string): Promise<string> {
   const res = await fetch(`${API_URL}/auth/login`, {
     method: 'POST',
