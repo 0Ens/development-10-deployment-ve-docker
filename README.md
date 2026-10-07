@@ -137,10 +137,24 @@ Mesajlar Turso'da (SQLite uyumlu managed database) duruyor. İlk hali SQLite dos
 
 ## Ne öğrendim
 
-- **Lokalde çalışmak canlıda çalışmak demek değil.** Lokalde Vite proxy istekleri API'ye taşıyordu; canlıda proxy yok, API adresini `VITE_API_URL` ile vermek gerekti.
-- **CORS'u tarayıcı uygular, sunucu değil.** API izinsiz siteye de cevap veriyor; sadece izin başlığını eklemiyor ve tarayıcı cevabı sayfaya vermiyor. Canlı sitede "Mesajlar yüklenemedi" hatasını aldım; sebebi Render'da `CORS_ORIGIN`'in tanımlı olmamasıydı. Kodu değil paneldeki değeri değiştirerek düzelttim.
-- **Container geçicidir.** İçine yazılan dosya restart'ta gider; kalıcı veri container'ın dışında durmalı.
-- **Sırlar repoya ve sohbete girmez.** Token yalnızca çalışacağı platformun panelinde durur; başka bir yere yapıştırılan token iptal edilip yenisi üretilmelidir.
-- **Dockerfile, deploy panelindeki ayarların dosyaya yazılmış halidir:** Node'u seç, `npm ci` ile bağımlılıkları kur, kodu kopyala, başlat. `COPY . .` sonda durur ki kod değişince bağımlılıklar yeniden kurulmasın.
-- **`npm install` hangi klasörde çalışırsa oraya kurar.** `cors`'u önce yanlış klasöre kurdum; `package.json`'a girmeyen paket canlıda bulunamaz.
-- **Windows'ta Docker, WSL olmadan çalışmaz;** kurulumdan sonra motorun açılması için bilgisayarı yeniden başlatmam gerekti.
+Bu ödeve başlarken Docker'ı hiç kurmamıştım, CORS'un ne olduğunu da bilmiyordum. En çok şu noktalarda takıldım ve en çok oralardan öğrendim:
+
+- **Lokalde çalışan kod canlıda kendiliğinden çalışmıyor.** Bilgisayarımda arayüz isteklerini Vite proxy API'ye taşıyordu ve ben bunun farkında bile değildim. Canlıda proxy olmadığı için API adresini `VITE_API_URL` ile vermek gerekti. Bu değerin build sırasında JS dosyasına gömüldüğünü, yani sır koyulamayacağını da burada öğrendim.
+
+- **CORS hatasını ilk gördüğümde sebebini bilmiyordum.** Vercel'deki sitem açıldı ama "Mesajlar yüklenemedi" yazdı. API çalışıyordu, site çalışıyordu; sorun API'nin benim Vercel adresimi tanımamasıydı. Render'da `CORS_ORIGIN` değişkenini hiç eklememiştim, bu yüzden panelde arayıp bulamadım. Değişkeni ekleyince düzeldi ve koda hiç dokunmadım. Aklımda kalan şey: CORS'u sunucu değil tarayıcı uygular; API izinsiz siteye de cevap verir, sadece izin başlığını eklemez.
+
+- **`npm install` hangi klasördeysem oraya kuruyor.** `cors` paketini yanlışlıkla kullanıcı klasörüme kurdum. Lokalde fark etmeyebilirdim ama paket `server/package.json`'a girmediği için Render'da ve Docker'da bulunamayacaktı. Artık komut yazmadan önce hangi klasörde olduğuma bakıyorum.
+
+- **Container geçici, veri kalıcı olmalı.** Render'ın her restart'ta container'ı sıfırdan kurduğunu ve içindeki SQLite dosyasının silineceğini öğrendim. Ücretsiz planda kalıcı disk olmadığı için veriyi Turso'ya taşıdık. Mesaj yazıp servisi kendi elimle restart ettim ve mesajın durduğunu gördüm; "kalıcılık" kelimesi benim için o an somutlaştı.
+
+- **Veritabanı uzaktaysa kod beklemeyi bilmeli.** Dosyadan okurken cevap anında geliyordu; Turso'ya geçince her sorgunun önüne `await` geldi, çünkü cevap artık ağ üzerinden geliyor.
+
+- **Sırlar sadece çalışacakları yerde durur.** Veritabanı token'ımı yanlışlıkla bir sohbete yapıştırdım ve bunun neden sorun olduğunu öğrendim: o token veritabanına tam erişim veriyor. Token'ın yeri repo ya da sohbet değil, Render paneli. Token üretirken yetki seçmem de gerekti; API hem okuyup hem yazdığı için read & write seçtim.
+
+- **Docker'ı kurmak düşündüğümden uzun sürdü.** Windows'ta Docker, WSL olmadan çalışmıyor. Önce "WSL not installed" hatası aldım, WSL'i kurdum, motor yine açılmadı; bilgisayarı yeniden başlatınca düzeldi. Hata mesajını okuyup adım adım gitmek gerektiğini gördüm.
+
+- **Dockerfile gözümü korkutmuştu ama aslında tanıdık çıktı.** Baştan ne yazacağımı bilmiyordum. Sonra Render'da elle girdiğim ayarların (Node, `npm ci`, `npm start`) aynısı olduğunu gördüm: Node'lu bir Linux seç, bağımlılıkları kur, kodu kopyala, başlat. `COPY . .` satırının sonda durmasının sebebi de kod değişince bağımlılıkların yeniden kurulmaması.
+
+- **CI aynı işi her push'ta benim yerime yapıyor.** Testleri lokalde çalıştırmayı unutsam bile GitHub boş bir makinede koşuyor; yeşil işaret, kodun sadece benim bilgisayarımda değil temiz bir ortamda da çalıştığını gösteriyor.
+
+Tutorial'larda bu iş yirmi dakika gibi görünüyor; bende günlere yayıldı ve zamanın çoğu kod yazmaya değil ayarlara, hesaplara ve hata mesajlarına gitti. Sanırım deploy'un asıl öğrettiği de bu.
