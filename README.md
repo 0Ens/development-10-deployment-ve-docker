@@ -137,6 +137,10 @@ Gerçek değerler repoda yoktur; `.env` gitignore'dadır, production değerleri 
 
 Mesajlar Turso'da (SQLite uyumlu managed database) duruyor. İlk hali SQLite dosyasını API ile aynı yerde tutuyordu; bu Render'da çalışmaz, çünkü container her deploy ve restart'ta sıfırdan kurulur ve içindeki dosya silinir. İki seçenek vardı: Render'ın kalıcı diski ya da managed database. Kalıcı disk Render'ın ücretsiz planında bulunmadığı için managed database'i seçtim. Turso'yu seçmemin sebebi SQLite ile uyumlu olması: SQL sorgularım aynı kaldı, testler hâlâ bellekteki veritabanıyla koşuyor; yalnızca `better-sqlite3` yerine `@libsql/client` kullanıp veritabanı çağrılarını `async/await`'e çevirmem gerekti. Bedeli, her sorgunun artık ağ üzerinden gitmesi ve aynı makinedeki dosyaya göre daha yavaş olması. **Kanıt:** canlı siteden "benim ilk mesajim :)" mesajını yazdım, Render panelinden servisi restart ettim, sayfayı yeniledim; mesaj duruyordu.
 
+## AI kullanımı
+
+Bu projede Claude Code ile çalıştım. Testlerin ve bazı fonksiyonların bir kısmını Claude Code yazdı; kalan testlerin neredeyse tamamını onları örnek alarak ben yazdım, öğrenmek için bu şekilde ilerledik. Render, Vercel ve Turso'da yapılması gerekenleri ben yaptım. Claude Code'un yaptığı her şeyi genel olarak kontrol ettim.
+
 ## Ne öğrendim
 
 Bu ödeve başlarken Docker'ı hiç kurmamıştım, CORS'un ne olduğunu da bilmiyordum. En çok şu noktalarda takıldım ve en çok oralardan öğrendim:
