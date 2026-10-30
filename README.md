@@ -1,6 +1,6 @@
 # Ziyaretçi Defteri — Deployment ve Docker
 
-development-09'da yazdığım ziyaretçi defterinin canlıya çıkmış hali: React arayüzü Vercel'de, Express API'si Render'da, veriler Turso'da duruyor. API için bir Dockerfile ve her push'ta testleri koşan bir GitHub Actions workflow'u var.
+Ziyaretçi defterini Vercel, Render ve Turso ile canlıya aldım; API için Dockerfile ve her push'ta testleri koşan CI kurdum.
 
 ## Canlı adresler
 
