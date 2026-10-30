@@ -2,6 +2,8 @@
 
 Ziyaretçi defterini Vercel, Render ve Turso ile canlıya aldım; API için Dockerfile ve her push'ta testleri koşan CI kurdum.
 
+![Ziyaretçi Defteri canlı ekranı](screenshot.png)
+
 ## Canlı adresler
 
 | Parça | Adres |
